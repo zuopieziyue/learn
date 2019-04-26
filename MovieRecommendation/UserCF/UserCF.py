@@ -84,23 +84,51 @@ class UserBasedCF():
                 self.user_sim_matrix[u][v] = count / math.sqrt(len(self.trainSet[u]) * len(self.trainSet[v]))
         print('Calculate user similarity matrix success!')
 
-
-
-
- 
-
-    # 针对目标用户U，找到其最相似的K个用户，产生N个推荐
+    #针对目标用户U，找到其最相似的K个用户，产生N个推荐
     def recommend(self, user):
         K = self.n_sim_user
-        N = self.n_rec_movie
+        N = self.n_rec_moive
         rank = {}
-        watched_movies = self.trainSet[user]
+        watched_moives = self.trainSet[user]
 
-        # v=similar user, wuv=similar factor
-        for v, wuv in sorted(self.user_sim_matrix[user].items(), key=itemgetter(1), reverse=True)[0:K]:
-            for movie in self.trainSet[v]:
-                if movie in watched_movies:
+        # v = similar user, wuv=similar factor
+        for v, wuv in sorted(self.user_sim_matrix[user].items(), key=itemgetter(1), reverse=True)[0:K]
+            for moive in self.trainSet[v]:
+                if moive in watched_moives:
                     continue
-                rank.setdefault(movie, 0)
-                rank[movie] += wuv
+                rank.setdefault(moive, 0)
+                rank[moive] += wuv
         return sorted(rank.items(), key=itemgetter(1), reverse=True)[0:N]
+
+    #产生推荐并通过准确率、召回率和覆盖率进行评估
+    def evaluate(self):
+        print("Evaluation start ...")
+        N = self.n_rec_moive
+        #准确率和召回率
+        hit = 0
+        rec_count = 0
+        rest_count = 0
+        #覆盖率
+        all_rec_movies = set()
+
+        for i, user in enumerate(self.trainSet):
+            test_moives = self.testSet.get(user, {})
+            rec_moives = self.recommend(user)
+            for moive, w in rec_moives:
+                if moive in test_moives:
+                    hit += 1
+                all_rec_moives.add(moive)
+            rec_count += N
+            test_count += len(test_moives)
+        
+        precision = hit / (1.0 * rec_count)
+        recall = hit / (1.0 * test_count)
+        coverage = len(all_rec_movies) / (1.0 * self.movie_count)
+        print('precisioin=%.4f\trecall=%.4f\tcoverage=%.4f' % (precision, recall, coverage))
+
+if __name__ == '__main__':
+    rating_file = 'D:\\学习资料\\推荐系统\\ml-latest-small\\ratings.csv'
+    userCF - UserBasedCF()
+    userCF.get_dataset(rating_file)
+    userCF.calc_user_sim()
+    userCF.evaluate()
