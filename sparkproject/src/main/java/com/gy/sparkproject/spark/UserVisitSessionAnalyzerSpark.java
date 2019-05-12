@@ -4,11 +4,16 @@ import javax.security.auth.login.Configuration;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.PairFunction;
+import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.hive.HiveContext;
+
+import scala.Tuple2;
 
 import com.alibaba.fastjson.JSONObject;
 import com.gy.sparkproject.conf.ConfigurationManager;
@@ -43,11 +48,18 @@ public class UserVisitSessionAnalyzerSpark {
 		ITaskDAO taskDAO = DAOFactory.getTaskDAO();
 		
 		// 首先得查询出来指定的任务,并获取这个任务的查询参数
-		long taskid = ParamUtils.getTaskIdFromArgs(args);
+		long taskid = ParamUtils.getTaskIdFromArgs(args, null);
 		Task task = taskDAO.findById(taskid);
 		JSONObject taskParam = JSONObject.parseObject(task.getTaskParam());
 		
 		// 如果进行session粒度的数据聚合，首先要从user_visit_action表中，查询出来指定日期范围内的行为数据
+		JavaRDD<Row> actionDF = getActionRDDByDateRange(sqlContext, taskParam);
+		
+		//首先，将行为数据，按照session_id进行groupByKey分组
+		
+		
+		
+		
 		
 		
 		
@@ -81,8 +93,6 @@ public class UserVisitSessionAnalyzerSpark {
 		if (local) {
 			MockData.mock(sc, sqlContext);
 		}
-		
-		
 	}
 	
 	/**
@@ -93,8 +103,44 @@ public class UserVisitSessionAnalyzerSpark {
 	 */
 	private static JavaRDD<Row> getActionRDDByDateRange(
 			SQLContext sqlContext, JSONObject taskParam) {
+		String startDate = ParamUtils.getParam(taskParam, Constants.PARAM_START_DATE);
+		String endDate = ParamUtils.getParam(taskParam, Constants.PARAM_END_DATE);
 		
-		
+		String sql = 
+				"select * "
+				+ "from user_visit_action "
+				+ "where date>='" + startDate + "' "
+				+ "and date<='" + endDate + "'";
+		DataFrame actionDF = sqlContext.sql(sql);
+		return actionDF.javaRDD();
 	}
 
+	/**
+	 * 对行为数据按照session粒度进行聚合
+	 * @param actionRDD 行为数据
+	 * @return session粒度聚合数据
+	 */
+	private static JavaPairRDD<String, String> aggregateBySession(
+			JavaRDD<Row> actionRDD) {
+		
+		JavaPairRDD<String, Row> sessionid2ActionRDD = actionRDD.mapToPair(
+				new PairFunction<Row, String, Row>() {
+					
+					private static final long serialVersionUID = 1L;
+					
+					@Override
+					public Tuple2<String, Row> call(Row row) throws Exception {
+						return new Tuple2<String, Row>(row.getString(2), row);
+					}
+				});
+		
+		// 对行为数据按session粒度进行分组
+		JavaPairRDD<String, Iterable<Row>> sessionid2ActionsRDD = sessionid2ActionRDD.groupByKey();
+		
+		// 对每个session分组进行聚合， 将session中所有的搜索词和点击品类都聚合起来
+		
+		
+		
+		return null;;
+	}
 }

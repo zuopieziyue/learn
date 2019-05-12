@@ -19,4 +19,11 @@ public interface Constants {
 	 * Spark作业相关的常量
 	 */
 	String SPARK_APP_NAME_SESSION = "UserVisitSessionAnalyzerSpark";
+	
+	/**
+	 * 任务相关的常量
+	 */
+	String PARAM_START_DATE = "startDate";
+	String PARAM_END_DATE = "endDate";
+	
 }
