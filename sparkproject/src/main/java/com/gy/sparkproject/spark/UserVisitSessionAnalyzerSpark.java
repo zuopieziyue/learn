@@ -5,12 +5,12 @@ import java.util.Iterator;
 
 import javax.security.auth.login.Configuration;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
@@ -27,7 +27,8 @@ import com.gy.sparkproject.dao.factory.DAOFactory;
 import com.gy.sparkproject.domain.Task;
 import com.gy.sparkproject.test.MockData;
 import com.gy.sparkproject.util.ParamUtils;
-import com.ibeifeng.sparkproject.util.DateUtils;
+import com.gy.sparkproject.util.DateUtils;
+import com.gy.sparkproject.util.StringUtils;
 
 /**
  * 用户访问Session分析spark作业
@@ -36,8 +37,6 @@ import com.ibeifeng.sparkproject.util.DateUtils;
  */
 @SuppressWarnings("unused")
 public class UserVisitSessionAnalyzerSpark {
-	
-	private static Object PairFunciton<>;
 
 	public static void main(String[] args) {
 		// 构建spark上下文
@@ -55,7 +54,7 @@ public class UserVisitSessionAnalyzerSpark {
 		ITaskDAO taskDAO = DAOFactory.getTaskDAO();
 		
 		// 首先得查询出来指定的任务,并获取这个任务的查询参数
-		long taskid = ParamUtils.getTaskIdFromArgs(args);
+		long taskid = ParamUtils.getTaskIdFromArgs(args, null);
 		Task task = taskDAO.findById(taskid);
 		JSONObject taskParam = JSONObject.parseObject(task.getTaskParam());
 		
@@ -64,6 +63,9 @@ public class UserVisitSessionAnalyzerSpark {
 		
 		JavaPairRDD<String, String> sessionid2AggrInfoRDD = 
 				aggregateBySession(sqlContext, actionRDD);
+		
+		// 针对session粒度的聚合数据，按照使用者指定的筛选参数进行数据过滤
+		
 		
 		
 		
@@ -179,7 +181,7 @@ public class UserVisitSessionAnalyzerSpark {
 							}
 							
 							//计算session开始时间和结束时间
-							Date actionTime = DateUtils.parseTime(row.getString(4));
+							Date actionTime = com.gy.sparkproject.util.DateUtils.parseTime(row.getString(4));
 							
 							if(startTime == null) {
 								startTime = actionTime;
@@ -259,8 +261,39 @@ public class UserVisitSessionAnalyzerSpark {
 					}
 				});
 		
+		return sessionid2FullAggrInfoRDD;
+	}
+	
+	/**
+	 * 过滤session数据
+	 * @param sessionid2AggrInfoRDD
+	 * @return
+	 */
+	private static JavaPairRDD<String, String> filterSession(
+			JavaPairRDD<String, String> sessionid2AggrInfoRDD, 
+			final JSONObject taskParam) {
 		
-		
+		JavaPairRDD<String, String> filteredSessionid2AggrInfoRDD = sessionid2AggrInfoRDD.filter(
+				new Function<Tuple2<String, String>, Boolean>() {
+					
+					private static final long serialVersionUID = 1L;
+					
+					@Override
+					public Boolean call (Tuple2<String, String> tuple) throws Exception {
+						//首先，从tuple中获取聚合数据
+						String aggrInfo = tuple._2;
+						
+						//接着，一次按照筛选条件进行过滤
+						//按照年龄范围进行过滤（startAge, endAge）
+						int age = Integer.valueOf(StringUtils.getFieldFromConcatString(
+								aggrInfo, "\\|", Constants.FIELD_AGE));
+						
+						
+						return null;
+					}
+					
+					
+				});
 		
 		return null;
 	}
