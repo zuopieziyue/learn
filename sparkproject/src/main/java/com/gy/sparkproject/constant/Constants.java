@@ -19,11 +19,19 @@ public interface Constants {
 	 * Spark作业相关的常量
 	 */
 	String SPARK_APP_NAME_SESSION = "UserVisitSessionAnalyzerSpark";
+	String FIELD_SESSION_ID = "sessionid";
+	String FIELD_SEARCH_KEYWORDS = "searchKeywords";
+	String FIELD_CLICK_CATEGORY_IDS = "clickCategoryIds";
+	String FIELD_AGE = "age";
+	String FIELD_PROFESSIONAL = "professional";
+	String FIELD_CITY = "city";
+	String FIELD_SEX = "sex";
 	
 	/**
 	 * 任务相关的常量
 	 */
 	String PARAM_START_DATE = "startDate";
 	String PARAM_END_DATE = "endDate";
+	
 	
 }
