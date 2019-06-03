@@ -37,6 +37,7 @@ public interface Constants {
 	String PARAM_PROFESSIONALS = "professionals";
 	String PARAM_CITIES = "cities";
 	String PARAM_SEX = "sex";
-	
+	String PARAM_KEYWORDS = "keywords";
+	String PARAM_CATEGORYIDS = "categoryIds";
 	
 }
