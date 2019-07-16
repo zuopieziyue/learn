@@ -1,0 +1,710 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"cut_",
+				"cut_for_search"
+			],
+			[
+				"file",
+				"file_obj"
+			],
+			[
+				"ser",
+				"search_specific"
+			],
+			[
+				"re",
+				"related_movie"
+			],
+			[
+				"moive_",
+				"moive_popular"
+			],
+			[
+				"train",
+				"trainSet_len"
+			],
+			[
+				"an",
+				"answer_dict"
+			],
+			[
+				"min",
+				"min_score"
+			],
+			[
+				"candi",
+				"candi_question"
+			],
+			[
+				"ve",
+				"vector2"
+			],
+			[
+				"vr",
+				"vector1"
+			],
+			[
+				"embedding_",
+				"embedding_size"
+			],
+			[
+				"_s",
+				"_score"
+			],
+			[
+				"in",
+				"insert_data_bulk"
+			],
+			[
+				"_",
+				"_index"
+			],
+			[
+				"comment",
+				"comment_list"
+			],
+			[
+				"if",
+				"ifmain	if __name__ == '__main__'"
+			],
+			[
+				"sin",
+				"sinaSSOController"
+			],
+			[
+				"pre",
+				"preloginCallBack"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "/D/github/learn/spark_learn1.py",
+			"settings":
+			{
+				"buffer_size": 483,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "",
+			"file": "/D/github/learn/ItemCF/ItemCF.py",
+			"file_size": -1,
+			"file_write_time": -1,
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/gongyue/AppData/Roaming/Sublime Text 2/Packages/Default/Preferences.sublime-settings",
+			"settings":
+			{
+				"buffer_size": 13677,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/D/github/KnowledgeGraph/CrimeKnowledgeGraph/build_qa_database.py",
+			"settings":
+			{
+				"buffer_size": 2791,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/github/KnowledgeGraph/CrimeKnowledgeGraph/crime_qa.py",
+			"settings":
+			{
+				"buffer_size": 4273,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/github/KnowledgeGraph/CrimeKnowledgeGraph/crime_classify_train.py",
+			"settings":
+			{
+				"buffer_size": 8053,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/github/learn/cut/zhcnSegment.py",
+			"settings":
+			{
+				"buffer_size": 960,
+				"line_ending": "Windows",
+				"name": "#encoding=utf-8"
+			}
+		},
+		{
+			"file": "/D/github/learn/cut/demo.py",
+			"settings":
+			{
+				"buffer_size": 768,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/github/learn/seq2seq/seq2seq.py",
+			"settings":
+			{
+				"buffer_size": 96,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "base.py",
+			"settings":
+			{
+				"buffer_size": 170,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/github/learn/TxRNN_Classify/TextRNN.py",
+			"settings":
+			{
+				"buffer_size": 12295,
+				"line_ending": "Windows",
+				"name": "# -*- coding: utf-8 -*-"
+			}
+		},
+		{
+			"contents": "# -*- coding: utf-8 -*-\n\n\"\"\"\n-------------------------------------------------\n   File Name：     TextRNN.py\n   Description :  TextRNN + Attention实现\n   Author :       charlesXu\n   date：          2019/1/9\n-------------------------------------------------\n   Change Activity: 2019/1/9:\n-------------------------------------------------\n\"\"\"\n\nimport datetime\nimport os\nimport pickle\nfrom sklearn.model_selection import train_test_split\n\nimport tensorflow as tf\nimport numpy as np\nimport Text_preprocessing \n\nlogger = Text_preprocessing.PrintLog(\"TextRNN.log\")\n\nclass TextRNN(object):\n	def __init__(self, vocab_size, embedding_size, rnn_size, num_layers,\n		attention_size, num_classes, learning_rate, grad_clip):\n		self.input_x = tf.placeholder(tf.int32, shape=[None, None], name='input_x')\n		self.input_y = tf.placeholder(tf.float32, shape=[None, num_classes], name='input_y')\n		self.keep_prob = tf.placeholder(tf.int32, shape=[None], name='seq_len')\n		self.global_step = tf.Variable(0, trainable=False, name='global_step')\n\n		# Define Basic RNN Cell\n		def basic_rnn_cell(rnn_size):\n            return tf.contrib.rnn.GRUCell(rnn_size)\n            # return tf.contrib.rnn.LSTMCell(rnn_size)\n\n        # Define Forward RNN Cell\n        with tf.name_scope('fw_cnn'):\n            fw_rnn_cell = tf.contrib.rnn.MultiRNNCell([basic_rnn_cell](rnn_size) for _ in range(num_layers))\n            fw_rnn_cell = tf.contrib.rnn.DropoutWrapper(fw_rnn_cell, output_keep_prob=self.keep_prob)\n\n        # Define Backward RNN Cell\n        with tf.name_scope('bw_cnn'):\n            bw_rnn_cell = tf.contrib.rnn.MultiRNNCell([basic_rnn_cell(rnn_size) for _ in range(num_layers)])\n            bw_rnn_cell = tf.contrib.rnn.DropoutWrapper(bw_rnn_cell, output_keep_prob=self.keep_prob)\n\n\n        # Embedding layer\n        with tf.name_scope('embedding'):\n            self.embedding = tf.Variable(tf.random_uniform([vocab_size, embedding_size], -1.0, 1.0), trainable=True, name='embeddings')\n            embedding_inputs = tf.nn.embedding_lookup(self.embedding, self.input_x)\n\n        # \n        with tf.name_scope('bi_rnn'):\n            rnn_output, _ = tf.nn.bidirectional_dynamic_rnn(fw_rnn_cell, bw_rnn_cell,, input=embedding_inputs, sentence_length=self.seq_len, dtypr=tf.float32)\n\n        # In case of Bi-RNN, concatenate the forward and the backward RNN outputs\n        if isinstance(rnn_output, tuple):\n            rnn_output = tf.concat(rnn_output, 2)\n\n        # BahdanauAttention Layer\n        with tf.name_scope('attention'):\n            hidden_size = rnn_output.shape[2].value\n            attention_w = tf.Variable(tf.truncated_normal([hidden_size, attention_size], stddev=0.1), name='attention_w')\n            attention_b = tf.Variable(tf.constant(0.1, shape=[attention_size], name='attention_b'))\n            attention_u = tf.Variable(tf.truncated_normal([attention_size], stddev=0.1), name='attention_u')\n\n            v = tf.tanh(tf.tensordot(rnn_output, attention_w, axis=1) + attention_b)\n            vu = tf.tensordot(v, attention_u, axis=1, name='vu')\n            alphas = tf.nn.softmax(vu, name='alphas')\n            attention_output = tf.reduce_sum(rnn_output * tf.expand_dims(alphas, -1), 1)\n\n        # Add dropout\n        with tf.name_scope('dropout'):\n            self.final_output = tf.nn.dropout(attention_output, self.keep_prob)\n\n        # Fully connected layer\n        with tf.name_scope('output'):\n            fc_w = tf.Variable(tf.truncated_normal([hidden_size, num_classes], stddev=0.1), name='fc_w')\n            fc_b = tf.Variable(tf.zeros([num_classes]), name='fc_b')\n            self.logits = tf.matmul(self.final_output, fc_w) + fc_b\n            self.logits_softmax = tf.nn.softmax(self.logits)\n            self.predictions = tf.argmax(self.logits, 1, name='pretictions')\n\n        # Calculate cross-entropy loss\n        with tf.name_scope('loss'):\n            cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.logits, labels=self.input_y)\n            self.loss = tf.reduce_mean(cross_entropy)\n\n        # Create optimizer\n        with tf.name_scope('optimization'):\n            optimizer = tf.train.AdamOptimizer(learning_rate)\n            gradients, variables = zip(*optimizer.computte_)\n\n        # Create optimizer\n        with tf.name_scope('optimization'):\n            optimizer = tf.train.AdamOptimizer(learning_rate)\n            gradients, variables = zip(*optimizer.compute_gradients(self.loss))\n            gradients, _ = tf.clip_by_global_norm(gradients, grad_clip)\n            self.train_op = optimizer.apply_gradients(zip(gradients, variables), global_step=self.global_step)\n\n        # Calculate accuracy\n        with tf.name_scope('accuracy'):\n            correct_pred = tf.equal(self.predictions, tf.argmax(self.input_y, 1))\n            self.accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))\n\n\n\n			\nclass TextRNN(object):\n    \"\"\"\n    RNN with Attention mechanism for text classification\n    \"\"\"\n    def __init__(self, vocab_size, embedding_size, rnn_size, num_layers,\n        attention_size, num_classes, learning_rate, grad_clip):\n        '''\n        :param vocab_size: vocabulary size\n        :param embedding_size: word embedding dimension\n        :param sequence_length: sequence length after sentence padding, UNUSED\n        :param rnn_size: hidden layer dimension\n        :param num_layers: number of rnn layers\n        :param attention_size: attention layer dimension\n        :param num_classes: number of target labels\n        :param learning_rate: initial learning rate\n        :param grad_clip: gradient clipping threshold\n        '''\n\n        self.input_x = tf.placeholder(tf.int32, shape=[None, None], name='input_x')\n        self.input_y = tf.placeholder(tf.float32, shape=[None, num_classes], name='input_y')\n        self.seq_len = tf.placeholder(tf.int32, shape=[None], name='seq_len')\n        self.keep_prob = tf.placeholder(tf.float32, name='keep_prob')\n        self.global_step = tf.Variable(0, trainable=False, name='global_step')\n\n        # Define Basic RNN Cell\n        def basic_rnn_cell(rnn_size):\n            return tf.contrib.rnn.GRUCell(rnn_size)\n            # return tf.contrib.rnn.LSTMCell(rnn_size)\n\n        # Define Forward RNN Cell\n        with tf.name_scope('fw_rnn'):\n            fw_rnn_cell = tf.contrib.rnn.MultiRNNCell([basic_rnn_cell(rnn_size) for _ in range(num_layers)])\n            fw_rnn_cell = tf.contrib.rnn.DropoutWrapper(fw_rnn_cell, output_keep_prob=self.keep_prob)\n\n        # Define Backward RNN Cell\n        with tf.name_scope('bw_rnn'):\n            bw_rnn_cell = tf.contrib.rnn.MultiRNNCell([basic_rnn_cell(rnn_size) for _ in range(num_layers)])\n            bw_rnn_cell = tf.contrib.rnn.DropoutWrapper(bw_rnn_cell, output_keep_prob=self.keep_prob)\n\n        # Embedding layer\n        with tf.name_scope('embedding'):\n            self.embedding = tf.Variable(tf.random_uniform([vocab_size, embedding_size], -1.0, 1.0), trainable=True, name='embeddings')\n            # self.input_x shape: (batch_size, sequence_length)\n            embedding_inputs = tf.nn.embedding_lookup(self.embedding, self.input_x)\n\n        with tf.name_scope('bi_rnn'):\n            # embedding_inputs shape: (batch_size, sequence_length, embedding_size)\n            # rnn_output, _ = tf.nn.dynamic_rnn(fw_rnn_cell, inputs=embedding_inputs, sequence_length=self.seq_len, dtype=tf.float32)\n            rnn_output, _ = tf.nn.bidirectional_dynamic_rnn(fw_rnn_cell, bw_rnn_cell, inputs=embedding_inputs, sequence_length=self.seq_len, dtype=tf.float32)\n\n        # In case of Bi-RNN, concatenate the forward and the backward RNN outputs\n        if isinstance(rnn_output, tuple):\n            rnn_output = tf.concat(rnn_output, 2)\n\n        # BahdanauAttention Layer\n        with tf.name_scope('attention'):\n		\n            hidden_size = rnn_output.shape[2].value\n\n            attention_w = tf.Variable(tf.truncated_normal([hidden_size, attention_size], stddev=0.1), name='attention_w')\n            attention_b = tf.Variable(tf.constant(0.1, shape=[attention_size]), name='attention_b')\n            attention_u = tf.Variable(tf.truncated_normal([attention_size], stddev=0.1), name='attention_u')\n\n            v = tf.tanh(tf.tensordot(rnn_output, attention_w, axes=1) + attention_b)\n            vu = tf.tensordot(v, attention_u, axes=1, name='vu')\n            alphas = tf.nn.softmax(vu, name='alphas')\n            attention_output = tf.reduce_sum(rnn_output * tf.expand_dims(alphas, -1), 1)\n			\n        # Add dropout\n        with tf.name_scope('dropout'):\n            # attention_output shape: (batch_size, hidden_size)\n            self.final_output = tf.nn.dropout(attention_output, self.keep_prob)\n\n        # Fully connected layer\n        with tf.name_scope('output'):\n            fc_w = tf.Variable(tf.truncated_normal([hidden_size, num_classes], stddev=0.1), name='fc_w')\n            fc_b = tf.Variable(tf.zeros([num_classes]), name='fc_b')\n            self.logits = tf.matmul(self.final_output, fc_w) + fc_b\n            self.logits_softmax = tf.nn.softmax(self.logits)\n            self.predictions = tf.argmax(self.logits, 1, name='predictions')\n\n        # Calculate cross-entropy loss\n        with tf.name_scope('loss'):\n            cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.logits, labels=self.input_y)\n            self.loss = tf.reduce_mean(cross_entropy)  # TODO: add params loss\n\n        # Create optimizer\n        with tf.name_scope('optimization'):\n            optimizer = tf.train.AdamOptimizer(learning_rate)\n            gradients, variables = zip(*optimizer.compute_gradients(self.loss))\n            gradients, _ = tf.clip_by_global_norm(gradients, grad_clip)\n            self.train_op = optimizer.apply_gradients(zip(gradients, variables), global_step=self.global_step)\n\n        # Calculate accuracy\n        with tf.name_scope('accuracy'):\n            correct_pred = tf.equal(self.predictions, tf.argmax(self.input_y, 1))\n            self.accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))\n\n",
+			"file": "/D/github/learn/TxRNN_Classify/TextRNN_1.py",
+			"file_size": 10013,
+			"file_write_time": 132070532792059247,
+			"settings":
+			{
+				"buffer_size": 9997,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/python_project/emotion_analysis/crawl_weibo/crawl_weibo.py",
+			"settings":
+			{
+				"buffer_size": 1670,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "Packages/Python/Python.sublime-build",
+	"command_palette":
+	{
+		"height": 377.0,
+		"selected_items":
+		[
+		],
+		"width": 392.0
+	},
+	"console":
+	{
+		"height": 0.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/D/github/learn/python/python_learn.sublime-project",
+		"/C/Users/gongyue/AppData/Roaming/Sublime Text 2/Packages/User/Default (Windows).sublime-keymap",
+		"/C/Users/gongyue/AppData/Roaming/Sublime Text 2/Packages/User/Python.sublime-settings",
+		"/C/Users/gongyue/AppData/Roaming/Sublime Text 2/Packages/User/Distraction Free.sublime-settings",
+		"/D/github/KnowledgeGraph/CarKnowkedgeGraph/server/module.py",
+		"/D/github/KnowledgeGraph/CarKnowkedgeGraph/server/app.py",
+		"/D/github/KnowledgeGraph/CarKnowkedgeGraph/server/run_server.py",
+		"/C/Users/gongyue/AppData/Roaming/Sublime Text 2/Packages/Default/Default (Windows).sublime-keymap",
+		"/C/Users/gongyue/AppData/Roaming/Sublime Text 2/Packages/Default/Preferences.sublime-settings",
+		"/D/python_project/crawl_ip/crawl_ip.py",
+		"/D/github/KnowledgeGraph/CarKnowkedgeGraph/__init__.py",
+		"/D/github/KnowledgeGraph/CarKnowkedgeGraph/server/__init__.py",
+		"/D/学习/Python/leetcode/013-romanToInt.py",
+		"/D/python_project/opencv_example/Luxocator/RequestsUtils.py",
+		"/D/python_project/opencv_example/Luxocator/test2.html",
+		"/D/python_project/opencv_example/Luxocator/test2.sh",
+		"/D/python_project/shijiuda_wordcloud/shijiuda_wordcloud.py",
+		"/D/python_project/emotion_analysis/crawl_weibo_show/crawl_weibo_show.py",
+		"/D/python_project/shijiuda_wordcloud/shijiuda_wordcloud_example.py",
+		"/D/python_project/emotion_analysis/weibo_login/midToStr.py",
+		"/D/python_project/emotion_analysis/weibo_login/weibo_comment.py",
+		"/D/python_project/emotion_analysis/weibo_login/crawl_weibo_main.py",
+		"/D/python_project/emotion_analysis/weibo_login/weibo_login.py",
+		"/D/python_project/emotion_analysis/crawl_weibo_show/crawl_weibo_show_code.py",
+		"/D/python_project/emotion_analysis/crawl_weibo/crawl_weibo.py",
+		"/D/python_project/emotion_analysis/crawl_weibo_show/crawl_weibo_show_second.py",
+		"/D/python_project/opencv_example/firstOpenCv2/firstOpenCv2.py",
+		"/D/python_project/shijiuda_wordcloud/weibo_comment.py"
+	],
+	"find":
+	{
+		"height": 34.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 11,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "/D/github/learn/spark_learn1.py",
+					"settings":
+					{
+						"buffer_size": 483,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								460,
+								460
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/D/github/learn/ItemCF/ItemCF.py",
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "/C/Users/gongyue/AppData/Roaming/Sublime Text 2/Packages/Default/Preferences.sublime-settings",
+					"settings":
+					{
+						"buffer_size": 13677,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2479,
+								2479
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 4674.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/D/github/KnowledgeGraph/CrimeKnowledgeGraph/build_qa_database.py",
+					"settings":
+					{
+						"buffer_size": 2791,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1742,
+								1742
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "/D/github/KnowledgeGraph/CrimeKnowledgeGraph/crime_qa.py",
+					"settings":
+					{
+						"buffer_size": 4273,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3086,
+								3086
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "/D/github/KnowledgeGraph/CrimeKnowledgeGraph/crime_classify_train.py",
+					"settings":
+					{
+						"buffer_size": 8053,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2898,
+								2898
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "/D/github/learn/cut/zhcnSegment.py",
+					"settings":
+					{
+						"buffer_size": 960,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								765,
+								773
+							]
+						],
+						"settings":
+						{
+							"auto_name": "#encoding=utf-8",
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 285.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "/D/github/learn/cut/demo.py",
+					"settings":
+					{
+						"buffer_size": 768,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								768,
+								768
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "/D/github/learn/seq2seq/seq2seq.py",
+					"settings":
+					{
+						"buffer_size": 96,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								81,
+								81
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "base.py",
+					"settings":
+					{
+						"buffer_size": 170,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"auto_name": "",
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "/D/github/learn/TxRNN_Classify/TextRNN.py",
+					"settings":
+					{
+						"buffer_size": 12295,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								553,
+								553
+							]
+						],
+						"settings":
+						{
+							"auto_name": "# -*- coding: utf-8 -*-",
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 228.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "/D/github/learn/TxRNN_Classify/TextRNN_1.py",
+					"settings":
+					{
+						"buffer_size": 9997,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4607,
+								4607
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1400.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "/D/python_project/emotion_analysis/crawl_weibo/crawl_weibo.py",
+					"settings":
+					{
+						"buffer_size": 1670,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								892,
+								908
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 317.0
+	},
+	"replace":
+	{
+		"height": 0.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 206.0,
+	"status_bar_visible": true
+}
