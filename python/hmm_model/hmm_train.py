@@ -1,9 +1,10 @@
-doc_path = ""
+import math
+
+doc_path = "D:\\mygithub\\data\\learn\\python\\hmm_model\\allfiles\\1business.seg.cln.txt"
 
 #初始化模型参数
 #其中s状态为：B M E S
 STATUS_NUM = 4
-
 
 def get_word_ch(word):
 	ch_lst = []
@@ -38,8 +39,47 @@ while True:
 		continue
 	words = line.split()
 	
-	
-	
+	ch_lst = []
+	status_lst = []
+	#获取一句话中每个字符对应的B、M、E、S[0, 1, 2, 3]状态
+	for word in words:
+		cur_ch_lst = get_word_ch(word=word)
+		cur_ch_num = len(cur_ch_lst)
+		#初始化字符状态0
+		cur_status_lst = [0 for ch in range(cur_ch_num)]
+		#只有单个字的状态为3：S
+		if cur_ch_num == 1:
+			cur_status_lst[0] = 3
+		else:
+			#标识0：B
+			cur_status_lst[0] = 0
+			#标识2：E
+			cur_status_lst[-1] = 2
+			#标识1：M
+			for i in range(1,cur_ch_num-1):
+				cur_status_lst[i] = 1
+		#一行的所欲word放到ch_lst，状态status_lst
+		ch_lst.extend(cur_ch_lst)
+		status_lst.extend(cur_status_lst)
+
+	for i in range(len(ch_lst)):
+		cur_status = status_lst[i]
+		cur_ch = ch_lst[i]
+		#存储初始概率
+		if i == 0:
+			pi[cur_status] += 1.0
+			pi_sum += 1.0
+		#存储发射概率B
+		if cur_ch in B[cur_status]:
+			B[cur_status][cur_ch] += 1.0
+		else :
+			B[cur_status][cur_ch] = 1.0
+		B_sum[cur_status] += 1.0
+		#存储转移概率A
+		if i+1 < len(ch_lst)-1:
+			A[cur_status][status_lst[i+1]] += 1.0
+			A_sum[cur_status] += 1.0
+
 f_txt.close()
 
 
