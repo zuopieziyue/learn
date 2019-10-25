@@ -3,6 +3,8 @@ import jieba
 import jieba.analyse
 import pandas as pd
 
+os.environ['NLS_LANG'] = 'SIMPLIFIED CHINESE_CHINA.UTF8'
+
 music_meta_file = "D:\\mygithub\\data\\learn\\cut\\music_data\\music_meta"
 
 
