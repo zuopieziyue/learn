@@ -1,6 +1,7 @@
 import math
 
-doc_path = "D:\\mygithub\\data\\learn\\python\\hmm_model\\allfiles\\1business.seg.cln.txt"
+doc_path = "D:\\mygithub\\data\\learn\\python\\hmm_model\\allfiles.txt"
+mod_path = "D:\\mygithub\\data\\learn\\python\\hmm_model\\hmm_model.data"
 
 #初始化模型参数
 #其中s状态为：B M E S
@@ -20,7 +21,7 @@ pi = [0.0 for col in range(STATUS_NUM)]
 pi_sum = 0.0
 
 #2.状态转移概率
-A = [0.0 for col in range(STATUS_NUM) for row in range(STATUS_NUM)]
+A = [[0.0 for col in range(STATUS_NUM)] for row in range(STATUS_NUM)]
 A_sum = [0.0 for col in range(STATUS_NUM)]
 
 #3.发射概率
@@ -81,5 +82,45 @@ while True:
 			A_sum[cur_status] += 1.0
 
 f_txt.close()
+
+#将统计结果转化为概率形式
+for i in range(STATUS_NUM):
+	pi[i] /= pi_sum
+	#A
+	for j in range(STATUS_NUM):
+		A[i][j] /= A_sum[i]
+	for ch in B[i]:
+		B[i][ch] /= B_sum[i]
+
+#存储模型->模型文件，将概率转化成log形式
+f_mod = open(mod_path, "w", encoding='utf-8')
+for i in range(STATUS_NUM):
+	if pi[i] != 0.0:
+		log_p = math.log(pi[i])
+	else:
+		log_p = 0.0
+	f_mod.write(str(log_p) + " ")
+f_mod.write("\n")
+
+#A转移矩阵
+for i in range(STATUS_NUM):
+	for j in range(STATUS_NUM):
+		if A[i][j] != 0.0:
+			log_p = math.log(A[i][j])
+		else:
+			log_p = 0.0
+		f_mod.write(str(log_p) + " ")
+f_mod.write("\n")
+
+#B发射概率
+for i in range(STATUS_NUM):
+	for ch in B[i]:
+		if B[i][ch] != 0.0:
+			log_p = math.log(B[i][ch])
+		else:
+			log_p = 0.0
+		f_mod.write(ch + " " + str(log_p) + " ")
+f_mod.write("\n")
+
 
 
