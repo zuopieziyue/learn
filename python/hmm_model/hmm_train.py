@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Oct 25 17:19:29 2019
+
+@author: gongyue
+"""
+
 import math
 
 doc_path = "D:\\mygithub\\data\\learn\\python\\hmm_model\\allfiles.txt"
@@ -110,7 +117,7 @@ for i in range(STATUS_NUM):
 		else:
 			log_p = 0.0
 		f_mod.write(str(log_p) + " ")
-f_mod.write("\n")
+	f_mod.write("\n")
 
 #B发射概率
 for i in range(STATUS_NUM):
@@ -120,7 +127,7 @@ for i in range(STATUS_NUM):
 		else:
 			log_p = 0.0
 		f_mod.write(ch + " " + str(log_p) + " ")
-f_mod.write("\n")
+	f_mod.write("\n")
 
 
 
