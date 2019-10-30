@@ -1,0 +1,22 @@
+import org.apache.spark.sql.hive.HiveContext;
+import org.apache.spark.sql.sqlContext;
+
+val df = spark.read.json("H:\\spark_test\\student.json")
+df.show()
+df.select("lastName").show
+df.select("lastName").show(1)
+df.createOrReplaceTempView("Student")
+
+
+spark.sql("SELECT * FROM Student").show()
+spark.sql("SELECT lastName FROM Student").show()
+spark.sql("SELECT split(lastName,';') FROM Student").show()
+
+spark.sql("SELECT cast('12' as int)").show()
+spark.sql("SELECT ['12','13'] as tmp")
+spark.sql("SELECT ['12','13'].cast("int")")
+
+
+spark.sql("SELECT split(lastName,';') FROM Student").show()
+
+spark.sql("SELECT sum(split(lastName,';')) FROM Student").show()
