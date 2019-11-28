@@ -12,10 +12,10 @@ import math
 a = np.array([1,0,1])
 b = np.array([1,1,0])
 
-sum = 0
+sum_num = 0
 for i,j in zip(a,b):
-	sum += i*j
-print(sum)
+	sum_num += i*j
+print(sum_num)
 print(a.dot(b))
 	
 
