@@ -10,7 +10,6 @@ import jieba
 stop_word_lst = set()
 with open('stopword', 'r', encoding='utf-8') as f:
 	stop_word_lst = [word.strip() for word in f.readlines()]
-print(stop_word_lst)
 
 s1 = '这只皮靴号码大了。那只号码合适'
 s1_direct_cut = [i for i in jieba.cut(s1, cut_all=True)]
