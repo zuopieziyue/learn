@@ -4,6 +4,7 @@ Created on Tue Dec  3 12:26:36 2019
 
 @author: gongyue
 """
+import math
 
 '''
 训练，测试数据路径
@@ -90,7 +91,7 @@ def ComputeModel():
 		newsum = float(mysum + len(WordDic)) * DefaultFreq
 		for wid in ClassFeatDic[classid].keys():
 			ClassFeatProb[classid][wid] = float(ClassFeatDic[classid][wid] + DefaultFreq) / newsum
-	ClassDefaultProb[classid] = float(DefaultFreq)/newsum
+		ClassDefaultProb[classid] = float(DefaultFreq)/newsum
 
 def SaveModel():
 	outfile = open(Modelfile, 'w', encoding='utf-8')
@@ -147,10 +148,73 @@ def LoadModel():
 	infile.close()
 	print(len(ClassProb), "classes!", len(WordDic), "words!")
 
+def Predict():
+	global WordDic
+	global ClassFeatProb
+	global ClassDefaultProb
+	global ClassProb
+	
+	true_label_list = []
+	pred_label_list = []
+	
+	infile = open(TestOutFilePath, 'r', encoding='utf-8')
+	sline = infile.readline().strip()
+	scoreDic = {}
+	iline = 0
+	while len(sline) > 0:
+		iline += 1
+		if iline%10 == 0:
+			print(iline, "lines finished!")
+		pos = sline.find("#")
+		if pos > 0:
+			sline = sline[:pos].strip()
+		words = sline.split(" ")
+		classid = int(words[0])
+		true_label_list.append(classid)
+		words = words[1:]
+		
+		# 取先验概率
+		for classid in ClassProb.keys():
+			scoreDic[classid] = math.log(ClassProb[classid])
+		
+		# 不在字典中的词丢掉
+		for word in words:
+			if len(word) < 1:
+				continue
+			wid = int(word)
+			if wid not in WordDic:
+				continue
+			
+			for classid in ClassProb.keys():
+				# 在字典中没有在该类别中出现的词，用该类别默认概率计算
+				if wid not in ClassFeatProb[classid]:
+					scoreDic[classid] += math.log(ClassDefaultProb[classid])
+				else:
+					scoreDic[classid] += math.log(ClassFeatProb[classid][wid])
+		
+		maxProb = max(scoreDic.values())
+		for classid in scoreDic.keys():
+			if scoreDic[classid] == maxProb:
+				pred_label_list.append(classid)
+		sline = infile.readline().strip()
+	
+	infile.close()
+	print(len(true_label_list), len(pred_label_list))
+	return true_label_list, pred_label_list
 
-
+def Evaluate(true_list, pred_list):
+	accuracy = 0
+	i = 0
+	while i < len(true_list):
+		if pred_list[i] == true_list[i]:
+			accuracy += 1
+		i += 1
+	accuracy = float(accuracy)/float(len(true_list))
+	print('Accuracy: ', accuracy)
 
 
 if __name__=="__main__":
 	LoadData()
 	ComputeModel()
+	true_list, pred_list = Predict()
+	Evaluate(true_list, pred_list)
