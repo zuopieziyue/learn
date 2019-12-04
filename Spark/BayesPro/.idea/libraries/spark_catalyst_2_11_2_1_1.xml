@@ -1,0 +1,26 @@
+<component name="libraryTable">
+  <library name="spark-catalyst_2.11-2.1.1">
+    <CLASSES>
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-catalyst_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-core_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-graphx_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-hive-thriftserver_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-hive_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-launcher_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-mesos_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-mllib-local_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-mllib_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-network-common_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-network-shuffle_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-repl_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-sketch_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-sql_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-streaming_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-tags_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-unsafe_2.11-2.1.1.jar!/" />
+      <root url="jar://C:/spark-2.1.1-bin-hadoop2.7/jars/spark-yarn_2.11-2.1.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
