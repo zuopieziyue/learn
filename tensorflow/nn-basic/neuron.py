@@ -22,9 +22,25 @@ def load_data(filename):
 # tensorflow.Dataset
 class CifarData:
 	def __init__(self, filenames, need_shuffle):
-	
+		all_data = []
+		all_labels = []
+		for filename in filenames:
+			data, labels = load_data(filename)
+			for item, label in zip(data, labels):
+				if label in [0, 1]:
+					all_data.append(item)
+					all_labels.append(label)
+		
+		self._data = np.vstack(all_data)
+		self._data = self._data / 127.5 - 1
+		self._labels = np.hstack(all_labels)
 
-	
+
+x = tf.placeholder(tf.float32, [None, 3072])
+# [None]
+y = tf.placeholder(tf.int64, [None])
+
+
 
 
 
