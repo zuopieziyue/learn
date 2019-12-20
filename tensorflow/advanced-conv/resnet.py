@@ -114,7 +114,7 @@ def residual_block(x, output_channel):
 	output_x = conv2 + padded_x
 	return output_x
 
-def res_net(x, num_residual_block, num_subsampling, class_num):
+def res_net(x, num_residual_block, num_filter_base, class_num):
 	# residual network implementation
 	'''
 	- x: 输入图片
@@ -126,12 +126,39 @@ def res_net(x, num_residual_block, num_subsampling, class_num):
 	layers = []
 	# [None, width, height, channel]
 	input_size = x.get_shape().as_list()[1:]
+	with tf.variable_scope('conv0'):
+		conv0 = tf.layers.conv2d(
+								x,
+								num_filter_base,
+								(3, 3),
+								strides = (1, 1),
+								padding = 'same',
+								activation = tf.nn.relu,
+								name = 'conv0')
+		layers.append(conv0)
 	
+	# num_subsampling = 4, sample_id = [0, 1, 2, 3]
+	for sample_id in range(num_subsampling):
+		for i in range(num_residual_block[sample_id]):
+			with tf.variable_scope('conv%d_%d' % (sample_id, i)):
+				conv = residual_block(
+					layers[-1],
+					num_filter_base * (2 ** sample_id)
+				)
+				layers.append(conv)
+	multiplier = 2 ** (num_subsampling - 1)
+	assert layers[-1].get_shape().as_list()[1:] \ 
+		== [input_size[0] / multiplier,
+			input_size[1] / multiplier,
+			num_filter_base / multiplier]
 	
-	
-	
-	
-	
+	with tf.variable_scope('fc'):
+		# layer[-1].shape : [None, width, height, channel]
+		global_pool = tf.reduce_mean(layers[-1], [1,2])
+		logits = tf.layers.dense(global_pool, class_num)
+		layers.append(logits)
+	return layers[-1]
+
 
 # [None， 3072]
 x = tf.placeholder(tf.float32, [None, 3072])
@@ -141,7 +168,7 @@ x_image = tf.reshape(x, [-1, 3, 32, 32])
 # 32*32
 x_image = tf.transpose(x_image, perm=[0, 2, 3, 1])
 
-y_ = tf.layers.dense(flatten, 10)
+y_ = res_net(x_image, [2, 3, 2], 32, 10)
 
 loss = tf.losses.sparse_softmax_cross_entropy(labels=y, logits=y_)
 # y_ -> sofmax
