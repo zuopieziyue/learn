@@ -18,6 +18,11 @@ print(os.listdir(CIFAR_DIR))
 # 2.训练过程中将这些变量计算出来，输出到文件中
 # 3.文件解析./tensorboard --filepath
 
+# fine-tune
+# 1. save models(third_party).
+# 2. restore models checkpoint.
+# 3. keep some layers fixed.
+
 
 # 数据加载和数据 ===================================
 
@@ -233,6 +238,16 @@ if not os.path.exists(train_log_dir):
 if not os.path.exists(test_log_dir):
 	os.mkdir(test_log_dir)
 
+# 模型保存路径设置
+model_dir = os.path.join(run_dir, 'model')
+if not os.path.exists(model_dir):
+	os.mkdir(model_dir)
+
+saver = tf.train.Saver()
+
+# checkpiont
+model_name = 'ckp-01000'
+
 
 
 # 模型训练 ===========================================
@@ -243,6 +258,7 @@ train_steps = 10000
 test_steps = 100
 
 output_summary_every_steps = 100
+output_model_every_steps = 100
 
 with tf.Session() as sess:
 	sess.run(init)
@@ -294,3 +310,7 @@ with tf.Session() as sess:
 				all_test_acc_val.append(test_acc_val)
 			test_acc = np.mean(all_test_acc_val)
 			print('[Test] Step: %d, acc: %4.5f' % (i+1, test_acc))
+		if (i+1) % output_model_every_steps == 0:
+			saver.save(sess, os.path.join(model_dir, 'cpk-%05d' % (i+1)))
+			print('model saved to ckp-%05d' % (i+1))
+
