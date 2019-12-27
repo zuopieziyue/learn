@@ -196,7 +196,16 @@ def create_model(hps, vocab_size, num_classes):
 	
 	scale = 1.0 / math.sqrt(hps.num_embedding_size + hps.num_lstm_nodes[-1]) / 3.0
 	lstm_init = tf.random_uniform_initializer(-scale, scale)
+	
+	def _generate_params_for_lstm_cell(x_size, h_size, bias_size):
+		"""generates parameters for pure lstm implementation."""
+		x_w = tf.get_variable('x_weights', x_size)
+		h_w = tf.get_variable('h_weights', h_size)
+		b = tf.get_variable('biases', bias_size, initializer=tf.constant_initializer(0.0))
+		return x_w, h_w, b
+
 	with tf.variable_scope('lstm_nn', initializer = lstm_init):
+		'''
 		cells = []
 		for i in range(hps.num_lstm_layers):
 			cell = tf.contrib.rnn.BasicLSTMCell(
@@ -215,6 +224,57 @@ def create_model(hps, vocab_size, num_classes):
 				embed_inputs,
 				initial_state = initial_state)
 		last = rnn_outputs[:, -1, :]
+		'''
+		with tf.variable_scope('inputs'):
+			ix, ih, ib = _generate_params_for_lstm_cell(
+				x_size = [hps.num_embedding_size, hps.num_lstm_nodes[0]],
+				h_size = [hps.num_lstm_nodes[0], hps.num_lstm_nodes[0]],
+				bias_size = [1, hps.num_lstm_nodes[0]]
+			)
+		with tf.variable_scope('outputs'):
+			ox, oh, ob = _generate_params_for_lstm_cell(
+				x_size = [hps.num_embedding_size, hps.num_lstm_nodes[0]],
+				h_size = [hps.num_lstm_nodes[0], hps.num_lstm_nodes[0]],
+				bias_size = [1, hps.num_lstm_nodes[0]]
+			)
+		with tf.variable_scope('forget'):
+			fx, fh, fb = _generate_params_for_lstm_cell(
+				x_size = [hps.num_embedding_size, hps.num_lstm_nodes[0]],
+				h_size = [hps.num_lstm_nodes[0], hps.num_lstm_nodes[0]],
+				bias_size = [1, hps.num_lstm_nodes[0]]
+			)
+		with tf.variable_scope('memory'):
+			cx, ch, cb = _generate_params_for_lstm_cell(
+				x_size = [hps.num_embedding_size, hps.num_lstm_nodes[0]],
+				h_size = [hps.num_lstm_nodes[0], hps.num_lstm_nodes[0]],
+				bias_size = [1, hps.num_lstm_nodes[0]]
+			)
+		state = tf.Variable(
+			tf.zeros([batch_size, hps.num_lstm_nodes[0]]),
+			trainable = False
+		)
+		h = tf.Variable(
+			tf.zeros([batch_size, hps.num_lstm_nodes[0]]),
+			trainable = False
+		)
+		
+		for i in range(num_timesteps):
+			# [batch_size, 1, embed_size]
+			embed_input = embed_inputs[:, 1, :]
+			embed_input = tf.reshape(
+					embed_input,
+					[batch_size, hps.num_embedding_size])
+			forget_gate = tf.sigmoid(
+					tf.matmul(embed_input, fx) + tf.matmul(h, fh) + fb)
+			input_gate = tf.sigmoid(
+					tf.matmul(embed_input, ix) + tf.matmul(h, ih) + ib)
+			output_gate = tf.sigmoid(
+					tf.matmul(embed_input, ox) + tf.matmul(h, oh) + ob)
+			mid_state = tf.tanh(
+					tf.matmul(embed_input, cx) + tf.matmul(h, ch) + cb)
+			state = mid_state * input_gate + state * forget_gate
+			h = output_gate + tf.tanh(state)
+		last = h
 
 	fc_init = tf.uniform_unit_scaling_initializer(factor=1.0)
 	with tf.variable_scope('fc', initializer = fc_init):
@@ -271,7 +331,7 @@ init_op = tf.global_variables_initializer()
 train_keep_prob_value = 0.8
 test_keep_prob_value = 1.0
 
-num_train_steps = 3000
+num_train_steps = 1000
 
 with tf.Session() as sess:
 	sess.run(init_op)
