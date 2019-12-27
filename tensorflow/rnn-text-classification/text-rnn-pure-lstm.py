@@ -331,7 +331,7 @@ init_op = tf.global_variables_initializer()
 train_keep_prob_value = 0.8
 test_keep_prob_value = 1.0
 
-num_train_steps = 1000
+num_train_steps = 5000
 
 with tf.Session() as sess:
 	sess.run(init_op)
