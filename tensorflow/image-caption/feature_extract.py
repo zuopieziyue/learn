@@ -19,7 +19,8 @@ input_description_file = 'image_caption_data\\results_20130124.token'
 input_img_dir = 'image_caption_data\\flick30k_images'
 output_folder = 'image_caption_data\\download_inception_v3_features_bakup'
 
-batch_size = 1000
+batch_size = 100
+
 if not gfile.Exists(output_folder):
 	gfile.MakeDirs(output_folder)
 
@@ -46,12 +47,37 @@ pprint.pprint(list(img_name_to_tokens.keys())[0:10])
 pprint.pprint(img_name_to_tokens['2778832101.jpg'])
 
 def load_pretrained_inception(model_file):
-	with gfile.FastGFile(model_file, 'r') as f:
-		graph_def = tf.
+	with gfile.FastGFile(model_file, 'rb') as f:
+		graph_def = tf.GraphDef()
 		graph_def.ParseFromString(f.read())
 		_ = tf.import_graph_def(graph_def, name='')
 
 load_pretrained_inception(model_file)
+
+num_batches = int(len(all_img_names) / batch_size)
+if len(all_img_names) % batch_size != 0:
+	num_batches += 1
+
+with tf.Session() as sess:
+	second_to_last_tensor = sess.graph.get_tensor_by_name('pool_3:0')
+	for i in range(num_batches):
+		batch_img_names = all_img_names[i*batch_size:(i+1)*batch_size]
+		batch_features = []
+		for img_name in batch_img_names:
+			img_path = os.path.join(input_img_dir, img_name)
+			logging.info('processing_img %s' % img_name)
+			if not gfile.Exists(img_path):
+				continue
+			img_data = gfile.FastGFile(img_path, 'rb').read()
+			feature_vector = sess.run(
+					second_to_last_tensor,
+					feed_dict = {'DecodeJpeg/contents:0': img_data})
+			batch_features.append(feature_vector)
+		batch_features = np.vstack(batch_features)
+		output_filename = os.path.join(output_folder, 'image_features-%d.pickle' % i)
+		logging.info('writing to file %s' % output_filename)
+		with gfile.Gfile(output_filename, 'w') as f:
+			pk.dump((batch_img_names, batch_features), f)
 
 
 
