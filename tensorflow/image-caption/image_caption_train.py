@@ -33,7 +33,113 @@ if not gfile.Exists(output_dir):
 	gfile.MakeDirs(output_dir)
 
 def get_default_params():
+	return tf.contrib.training.HParams(
+			num_vocab_word_threshold = 3,
+			num_embedding_nodes = 32,
+			num_timesteps = 10,
+			num_lstm_nodes = [64, 64],
+			num_lstm_layers = 2,
+			num_fc_nodes = 32,
+			batch_size = 50,
+			cell_type = 'lstm',
+			clip_lstm_grads = 1.0,
+			learning_rate = 0.001,
+			keep_prob = 0.8,
+			log_frequent = 100,
+			save_frequent = 1000,
+	)
+
+hps = get_default_params()
+
+class Vocab(object):
+	def __init__(self, filename, word_num_threshold):
+		self._id_to_word = {}
+		self._word_to_id = {}
+		self._unk = -1
+		self._eos = -1
+		self._word_num_threshold = word_num_threshold
+		self._read_dict(filename)
 	
+	def _read_dict(self, filename):
+		with gfile.GFile(filename, 'r') as f:
+			lines = f.readlines()
+		for line in lines:
+			word, occurence = line.strip('\r\n').split('\t')
+			occurence = int(occurence)
+			if word != '<UNK>' and occurence < self._word_num_threshold:
+				continue
+			idx = len(self._id_to_word)
+			if word == '<UNK>':
+				self._unk = idx
+			elif word == '.':
+				self._eos = idx
+			if idx in self._id_to_word or word in self._word_to_id:
+				raise Exception('duplicate words in vocab file')
+			self._word_to_id[word] = idx
+			self._id_to_word[idx] = word
+	
+	@property
+	def unk(self):
+		return self._unk
+
+	@property
+	def eos(self):
+		return self._eos
+	
+	def word_to_id(self, word):
+		return self._word_to_id.get(word, self.unk)
+	
+	def id_to_word(self, cur_id):
+		return self._id_to_word.get(cur_id, '<UNK>')
+	
+	def size(self):
+		return len(self._word_to_id)
+	
+	def encode(self, sentence):
+		word_ids = [self.word_to_id(cur_word) for cur_word in sentence.split(' ')]
+		return word_ids
+	
+	def decode(self, sentence_id):
+		words = [self.id_to_word(word_id) for word_id in sentence_id]
+		return ' '.join(words)
+	
+def parse_token_file(token_file):
+	"""Parses token file."""
+	img_name_to_tokens = {}
+	with gfile.GFile(token_file, 'r') as f:
+		lines = f.readlines()
+	for line in lines:
+		img_id, description = line.strip('\r\n').split('\t')
+		img_name, _ = img_id.split('#')
+		img_name_to_tokens.setdefault(img_name, [])
+		img_name_to_tokens[img_name].append(description)
+	return img_name_to_tokens
+
+def convert_token_to_id(img_name_to_tokens, vocab):
+	"""Convert tokens of each description of imgs to id."""
+	img_name_to_token_ids = {}
+	for img_name in img_name_to_tokens:
+		img_name_to_token_ids.setdefault(img_name, [])
+		descriptions = img_name_to_tokens[img_name]
+		for description in descriptions:
+			token_ids = vocab.encode(description)
+			img_name_to_token_ids[img_name].append(token_ids)
+	return img_name_to_token_ids
+
+vocab = Vocab(input_vocab_file, hps.num_vocab_word_threshold)
+vocab_size = vocab.size()
+logging.info('vocab_size: %d' % vocab_size)
+
+img_name_to_tokens = parse_token_file(input_description_file)
+img_name_to_token_ids = convert_token_to_id(img_name_to_tokens, vocab)
+
+logging.info('num of all images: %d' % len(img_name_to_tokens))
+pprint.pprint(list(img_name_to_tokens.keys())[0:10])
+pprint.pprint(img_name_to_tokens['2778832101.jpg'])
+logging.info('num of all images: %d' % len(img_name_to_token_ids))
+pprint.pprint(list(img_name_to_token_ids.keys())[0:10])
+pprint.pprint(img_name_to_token_ids['2778832101.jpg'])
+
 
 
 
