@@ -24,6 +24,8 @@ import pickle as pk
 import numpy as np
 import math
 
+tf.logging.set_verbosity( tf.compat.v1.logging.INFO)
+
 input_description_file = 'image_caption_data\\results_20130124.token'
 input_img_feature_dir = 'image_caption_data\\feature_extraction_inception_v3'
 input_vocab_file = 'image_caption_data\\vocab.txt'
