@@ -20,7 +20,7 @@ import tensorflow as tf
 from tensorflow import gfile
 from tensorflow import logging
 import pprint
-import pickle as pk
+import _pickle as cPickle
 import numpy as np
 import math
 
@@ -143,6 +143,107 @@ pprint.pprint(list(img_name_to_token_ids.keys())[0:10])
 pprint.pprint(img_name_to_token_ids['2778832101.jpg'])
 
 
+class ImageCaptionData(object):
+	def __init__(
+			self,
+			img_name_to_token_ids,
+			img_feature_dir,
+			num_timesteps,
+			vocab,
+			deterministic = False):
+		self._vocab = vocab
+		self._all_img_feature_filepaths = []
+		for filename in gfile.ListDirectory(img_feature_dir):
+			self._all_img_feature_filepaths.append(os.path.join(img_feature_dir, filename))
+		pprint.pprint(self._all_img_feature_filepaths)
+		
+		self._img_name_to_token_ids = img_name_to_token_ids
+		self._num_timesteps = num_timesteps
+		self._indicator = 0
+		self._deterministic = deterministic
+		self._img_feature_filenames = []
+		self._img_feature_data = []
+		self._load_img_feature_pickle()
+		if not self._deterministic:
+			self._random_shuffle()
+	
+	def _load_img_feature_pickle(self):
+		for filepath in self._all_img_feature_filepaths:
+			logging.info('loading %s' % filepath)
+			with gfile.GFile(filepath, 'rb') as f:
+				filenames, features = cPickle.load(f)
+				self._img_feature_filenames += filenames
+				self._img_feature_data.append(features)
+		self._img_feature_data = np.vstack(self._img_feature_data)
+		origin_shape = self._img_feature_data.shape
+		self._img_feature_data = np.reshape(
+				self._img_feature_data,
+				(origin_shape[0], origin_shape[3]))
+		self._img_feature_filenames = np.asarray(self._img_feature_filenames)
+		print(self._img_feature_data.shape)
+		print(self._img_feature_filenames.shape)
+		if not self._deterministic:
+			self._random_shuffle()
+	
+	def size(self):
+		return len(self._img_feature_filenames)
+	
+	def img_feature_size(self):
+		return self._img_feature_data.shape[1]
 
+	def _random_shuffle(self):
+		p = np.random.permutation(self.size())
+		self._img_feature_filenames = self._img_feature_filenames[p]
+		self._img_feature_data = self._img_feature_data[p]
+	
+	def _img_desc(self, filenames):
+		batch_sentence_ids = []
+		batch_weights = []
+		for filename in filenames:
+			token_ids_set = self._img_name_to_token_ids[filename]
+			# chosen_token_ids = random.choice(token_ids_set)
+			chosen_token_ids = token_ids_set[0]
+			chosen_token_length = len(chosen_token_ids)
+			
+			weight = [1 for i in range(chosen_token_length)]
+			if chosen_token_length >= self._num_timesteps:
+				chosen_token_ids = chosen_token_ids[0:self._num_timesteps]
+				weight = weight[0:self._num_timesteps]
+			else:
+				remaining_length = self._num_timesteps - chosen_token_length
+				chosen_token_ids += [self._vocab.eos for i in range(remaining_length)]
+				weight += [0 for i in range(remaining_length)]
+			batch_sentence_ids.append(chosen_token_ids)
+			batch_weights.append(weight)
+		batch_sentence_ids = np.asarray(batch_sentence_ids)
+		batch_weights = np.asarray(batch_weights)
+		return batch_sentence_ids, batch_weights
+	
+	def next_batch(self, batch_size):
+		end_indicator = self._indicator + batch_size
+		if end_indicator > self.size():
+			if not self._deterministic:
+				self._random_shuffle()
+			self._indicator = 0
+			end_indicator = self._indicator + batch_size
+		assert end_indicator <= self.size()
+		
+		batch_img_features = self._img_feature_data[self._indicator: end_indicator]
+		batch_img_names = self._img_feature_filenames[self._indicator: end_indicator]
+		batch_sentence_ids, batch_weights = self._img_desc(batch_img_names)
+		
+		self._indicator = end_indicator
+		return batch_img_features, batch_sentence_ids, batch_weights, batch_img_names
 
+caption_data = ImageCaptionData(img_name_to_token_ids, input_img_feature_dir, hps.num_timesteps, vocab)
+img_feature_dim = caption_data.img_feature_size()
+caption_data_size = caption_data.size()
+logging.info('img_feature_dim: %d' % img_feature_dim)
+logging.info('caption_data_size: %d' % caption_data_size)
+
+batch_img_features, batch_sentence_ids, batch_weights, batch_img_names = caption_data.next_batch(5)
+pprint.pprint(batch_img_features)
+pprint.pprint(batch_sentence_ids)
+pprint.pprint(batch_weights)
+pprint.pprint(batch_img_names)
 
