@@ -20,7 +20,7 @@ import tensorflow as tf
 from tensorflow import gfile
 from tensorflow import logging
 import pprint
-import _pickle as cPickle
+import pickle as cPickle
 import numpy as np
 import math
 
@@ -171,7 +171,7 @@ class ImageCaptionData(object):
 		for filepath in self._all_img_feature_filepaths:
 			logging.info('loading %s' % filepath)
 			with gfile.GFile(filepath, 'rb') as f:
-				filenames, features = cPickle.load(f)
+				filenames, features = cPickle.load(f, encoding='bytes')
 				self._img_feature_filenames += filenames
 				self._img_feature_data.append(features)
 		self._img_feature_data = np.vstack(self._img_feature_data)
@@ -200,8 +200,9 @@ class ImageCaptionData(object):
 		batch_sentence_ids = []
 		batch_weights = []
 		for filename in filenames:
+			filename = filename.decode()
 			token_ids_set = self._img_name_to_token_ids[filename]
-			# chosen_token_ids = random.choice(token_ids_set)
+			#chosen_token_ids = random.choice(token_ids_set)
 			chosen_token_ids = token_ids_set[0]
 			chosen_token_length = len(chosen_token_ids)
 			
@@ -231,7 +232,7 @@ class ImageCaptionData(object):
 		batch_img_features = self._img_feature_data[self._indicator: end_indicator]
 		batch_img_names = self._img_feature_filenames[self._indicator: end_indicator]
 		batch_sentence_ids, batch_weights = self._img_desc(batch_img_names)
-		
+
 		self._indicator = end_indicator
 		return batch_img_features, batch_sentence_ids, batch_weights, batch_img_names
 
