@@ -121,7 +121,30 @@ def conv2d_transpose(inputs, out_channel, name, training, with_nn_relu=True):
 
 class Generator(object):
 	def __init__(self, channels, init_conv_size):
-		self._channels = chennels
-		self._init_conv_size
+		self._channels = channels
+		self._init_conv_size = init_conv_size
+		self._reuse = False
+	
+	def __call__(self, inputs, training):
+		inputs = tf.convert_to_tensor(inputs)
+		with tf.variable_scope('generator', reuse=self._reuse):
+			with tf.variable_scope('inputs_conv'):
+				fc = tf.layers.dense(
+						inputs,
+						self._channels[0] * self._init_conv_size * self._init_conv_size)
+				conv0 = tf.reshape(
+						fc,
+						[-1, self._init_conv_size, self._init_conv_size, self._channels[0]])
+				bn0 = tf.layers.batch_normalization(
+						conv0,
+						training = training)
+				relu0 = tf.nn.relu(bn0)
+			
+			deconv_inputs = relu0
+			
+		self._reuse = True
+		
+	
+	
 
 
