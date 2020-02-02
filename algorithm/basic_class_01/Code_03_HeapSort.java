@@ -2,22 +2,49 @@ package basic_class_01;
 
 import java.util.Arrays;
 
-public class Code_02_SelectionSort {
+public class Code_03_HeapSort {
 
-	public static void selectionSort(int[] arr) {
+	public static void heapSort(int[] arr) {
 		if (arr == null || arr.length < 2) {
 			return;
 		}
-		for (int i = 1; i < arr.length - 1; i++) {
-			int minIndex = i;
-			for (int j = i + 1; j < arr.length; j++) {
-				minIndex = arr[j] < arr[minIndex] ? i : minIndex;
+		for (int i = 0; i < arr.length; i++) {
+			heapInsert(arr, i);
+		}
+		int size = arr.length;
+		swap(arr, 0, --size);
+		while(size > 0) {
+			heapify(arr, 0, size);
+			swap(arr, 0, --size);
+		}
+	}
+
+	public static void heapInsert(int[] arr, int index) {
+		while(arr[index] > arr[(index - 1) / 2]) {
+			swap(arr, index, (index - 1) / 2);
+			index = (index -1) / 2;
+		}
+	}
+
+	public static void heapify(int[] arr, int index, int size) {
+		int left = index * 2 + 1;
+		while(left < size) {
+			int largest = left + 1 < size && arr[left + 1] > arr[left] ? left + 1 : left;
+			largest = arr[largest] > arr[index] ? largest : index;
+			if (largest == index) {
+				break;
 			}
-			swap(arr, i, minIndex);
+			swap(arr, largest, index);
+			index = largest;
+			left = index * 2 + 1;
 		}
 	}
 
 	public static void swap(int[] arr, int i, int j) {
+		//arr[i] = arr[i] ^ arr[j];
+		//arr[j] = arr[i] ^ arr[j];
+		//arr[i] = arr[i] ^ arr[j];
+
 		int tmp = arr[i];
 		arr[i] = arr[j];
 		arr[j] = tmp;
@@ -88,12 +115,10 @@ public class Code_02_SelectionSort {
 		for (int i = 0; i < testTime; i++) {
 			int[] arr1 = generateRandomArray(maxSize, maxValue);
 			int[] arr2 = copyArray(arr1);
-			selectionSort(arr1);
+			heapSort(arr1);
 			comparator(arr2);
 			if (!isEqual(arr1, arr2)) {
 				succeed = false;
-				printArray(arr1);
-				printArray(arr2);
 				break;
 			}
 		}
@@ -101,7 +126,7 @@ public class Code_02_SelectionSort {
 
 		int[] arr = generateRandomArray(maxSize, maxValue);
 		printArray(arr);
-		selectionSort(arr);
+		heapSort(arr);
 		printArray(arr);
 	}
 }
