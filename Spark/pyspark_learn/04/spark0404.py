@@ -3,7 +3,6 @@
 import os
 import sys
 
-os.environ['SPARK_HOME'] = '/home/hadoop/app/spark-2.3.0-bin-2.6.0-cdh5.7.0'
 sys.path.append("/home/hadoop/app/spark-2.3.0-bin-2.6.0-cdh5.7.0/python/")
 
 from pyspark import SparkConf, SparkContext
