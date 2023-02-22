@@ -45,8 +45,3 @@ if __name__ == '__main__':
             train_l = loss(net(features, w, b), labels)
             print('epoch %d, loss %f' % (epoch + 1, train_l.mean()))
 
-
-
-
-
-
