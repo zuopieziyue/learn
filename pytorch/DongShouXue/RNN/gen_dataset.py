@@ -110,20 +110,3 @@ corpus, vocab = load_corpus_time_machine()
 print(len(corpus), len(vocab))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
