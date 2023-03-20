@@ -61,3 +61,4 @@ class RNNModel(nn.Model):
 device = d2l.try_gpu()
 net = RNNModel(rnn_layer, vocab_size=len(vocab))
 net = net.to(device)
+
