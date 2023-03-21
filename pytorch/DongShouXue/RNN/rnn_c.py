@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from n_gram import load_data_time_machine
+from rnn import predict_ch8, train_ch8
 from d2l import torch as d2l
 
 
@@ -24,7 +25,7 @@ Y, state_new = rnn_layer(X, state)
 print(Y.shape, state_new.shape)
 
 
-class RNNModel(nn.Model):
+class RNNModel(nn.Module):
     """循环神经网络模型"""
     def __init__(self, rnn_layer, vocab_size, **kwargs):
         super(RNNModel, self).__init__(**kwargs)
@@ -61,4 +62,17 @@ class RNNModel(nn.Model):
 device = d2l.try_gpu()
 net = RNNModel(rnn_layer, vocab_size=len(vocab))
 net = net.to(device)
+predict_result = predict_ch8('time_traveller', 10, net, vocab, device)
+print("训练前输出：", predict_result)
+
+
+num_epochs, lr = 500, 1
+train_ch8(net, train_iter, vocab, lr, num_epochs, device)
+
+
+
+
+
+
+
 
