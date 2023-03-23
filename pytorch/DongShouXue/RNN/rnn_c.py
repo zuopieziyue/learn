@@ -31,7 +31,7 @@ class RNNModel(nn.Module):
         super(RNNModel, self).__init__(**kwargs)
         self.rnn = rnn_layer
         self.vocab_size = vocab_size
-        self.num_hiddens = self.rnn.hiddens_size
+        self.num_hiddens = self.rnn.hidden_size
         # 如果RNN是双向的，num_directions应该是2，否则应该是1
         if not self.rnn.bidirectional:
             self.num_directions = 1
@@ -62,8 +62,8 @@ class RNNModel(nn.Module):
 device = d2l.try_gpu()
 net = RNNModel(rnn_layer, vocab_size=len(vocab))
 net = net.to(device)
-predict_result = predict_ch8('time_traveller', 10, net, vocab, device)
-print("训练前输出：", predict_result)
+predict = lambda prefix: predict_ch8(prefix, 50, net, vocab, device)
+print("训练前输出：", predict('time traveller'))
 
 
 num_epochs, lr = 500, 1

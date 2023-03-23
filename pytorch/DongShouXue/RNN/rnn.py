@@ -184,7 +184,7 @@ def train_ch8(net, train_iter, vocab, lr, num_epochs, device, use_random_iter=Fa
 
 
 """训练神经网络"""
-num_epochs, lr = 500, 1
+num_epochs, lr = 2, 1
 train_ch8(net, train_iter, vocab, lr, num_epochs, d2l.try_gpu())
 
 

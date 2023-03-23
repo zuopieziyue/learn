@@ -64,7 +64,7 @@ def lstm(inputs, state, params):
 
 """训练和预测"""
 vocab_size, num_hiddens, device = len(vocab), 256, d2l.try_gpu()
-num_epochs, lr = 500, 1
+num_epochs, lr = 10, 1
 model = RNNModelScratch(len(vocab), num_hiddens, device, get_lstm_params, init_lstm_state, lstm)
 train_ch8(model, train_iter, vocab, lr, num_epochs, device)
 
