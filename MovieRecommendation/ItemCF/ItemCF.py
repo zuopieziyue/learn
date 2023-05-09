@@ -1,8 +1,11 @@
 # coding = utf-8
 
-# 基于项目的协同过滤推荐算法实现
-import random
+"""
+    基于项目的协同过滤推荐算法实现
+"""
 
+
+import random
 import math
 from operator import itemgetter
 
@@ -26,8 +29,16 @@ class ItemBasedCF():
         print('Similar movie number = %d' % self.n_sim_movie)
         print('Recommneded movie number = %d' % self.n_rec_movie)
 
+    # 读文件，返回文件的每一行
+    def load_file(self, filename):
+        with open(filename, 'r') as f:
+            for i, line in enumerate(f):
+                if i == 0:  # 去掉文件第一行的title
+                    continue
+                yield line.strip('\r\n')
+        print('Load %s success!' % filename)
 
-    # 读文件得到“用户-电影”数据
+    # 读文件得到“用户-电影”数据，并划分训练集和测试集
     def get_dataset(self, filename, pivot=0.75):
         trainSet_len = 0
         testSet_len = 0
@@ -44,17 +55,6 @@ class ItemBasedCF():
         print('Split trainingSet and testSet success!')
         print('TrainSet = %s' % trainSet_len)
         print('TestSet = %s' % testSet_len)
-
-
-    # 读文件，返回文件的每一行
-    def load_file(self, filename):
-        with open(filename, 'r') as f:
-            for i, line in enumerate(f):
-                if i == 0:  # 去掉文件第一行的title
-                    continue
-                yield line.strip('\r\n')
-        print('Load %s success!' % filename)
-
 
     # 计算电影之间的相似度
     def calc_movie_sim(self):
@@ -88,7 +88,6 @@ class ItemBasedCF():
                     self.movie_sim_matrix[m1][m2] = count / math.sqrt(self.movie_popular[m1] * self.movie_popular[m2])
         print('Calculate movie similarity matrix success!')
 
-
     # 针对目标用户U，找到K部相似的电影，并推荐其N部电影
     def recommend(self, user):
         K = self.n_sim_movie
@@ -104,37 +103,45 @@ class ItemBasedCF():
                 rank[related_movie] += w * float(rating)
         return sorted(rank.items(), key=itemgetter(1), reverse=True)[:N]
 
-    #产生推荐并通过准确率/召回率和覆盖率进行评估
+    # 产生推荐并通过准确率/召回率和覆盖率进行评估
     def evaluate(self):
         print('Evaluating start ...')
         N = self.n_rec_movie
 
-        #准确率和召回率
+        # 准确率和召回率
         hit = 0
         rec_count = 0
         test_count = 0
 
-        #覆盖率
-        all_rec_moives = set()
+        # 覆盖率
+        all_rec_movies = set()
 
         for i, user in enumerate(self.trainSet):
-            test_moives = self.testSet.get(user, {})
-            rec_moives = self.recommend(user)
-            for moive, w in rec_moives:
-                if moive in test_moives:
+            test_movies = self.testSet.get(user, {})
+            rec_movies = self.recommend(user)
+            for movie, w in rec_movies:
+                if movie in test_movies:
                     hit += 1
-                all_rec_moives.add(moive)
+                all_rec_movies.add(movie)
             rec_count += N
-            test_count += len(test_moives)
+            test_count += len(test_movies)
 
         precision = hit / (1.0 * rec_count)
         recall = hit / (1.0 * test_count)
-        coverage = len(all_rec_moives) / (1.0 * self.moive_count)
+        coverage = len(all_rec_movies) / (1.0 * self.movie_count)
         print('precisioin=%.4f\trecall=%.4f\tcoverage=%.4f' % (precision, recall, coverage))
 
+
 if __name__ == '__main__':
-    rating_file = 'D:\\学习资料\\推荐系统\\ml-latest-small\\ratings.csv'
+    """
+    数据集地址： 
+    ml-latest-small(1MB): http://files.grouplens.org/datasets/movielens/ml-latest-small.zip
+    ml-latest(234.2MB): http://files.grouplens.org/datasets/movielens/ml-latest.zip
+    """
+    rating_file = '..\\data\\ml-latest-small\\ratings.csv'
     itemCF = ItemBasedCF()
     itemCF.get_dataset(rating_file)
-    itemCF.calc_moive_sim()
+    itemCF.calc_movie_sim()
     itemCF.evaluate()
+
+    """precisioin=0.2687	recall=0.0645	coverage=0.0665"""
